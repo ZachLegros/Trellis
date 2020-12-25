@@ -42,6 +42,19 @@ Adafruit_TrellisSet trellis =  Adafruit_TrellisSet(&matrix0);
 // Connect I2C SDA pin to your Arduino SDA line
 // Connect I2C SCL pin to your Arduino SCL line
 
+byte ledMatrix[16] = {0,};
+
+void sendMatrix() 
+{
+  for (int i=0; i<15; i++)
+  {
+    Serial.print(ledMatrix[i]);
+    Serial.print(",");
+  }
+  Serial.print(ledMatrix[15]);
+  Serial.println();
+}
+
 void setup() {
   Serial.begin(9600);
  
@@ -54,7 +67,7 @@ void setup() {
   // light up all the LEDs in order
   for (uint8_t i=0; i<numKeys; i++) {
     trellis.setLED(i);
-    trellis.writeDisplay();    
+    trellis.writeDisplay();   
     delay(50);
   }
   // then turn them off
@@ -65,7 +78,6 @@ void setup() {
   }
 }
 
-
 void loop() {
   delay(30); // 30ms delay is required, dont remove me!
   
@@ -74,18 +86,20 @@ void loop() {
     if (trellis.readSwitches()) {
       // go through every button
       for (uint8_t i=0; i<numKeys; i++) {
-	// if it was pressed, turn it on
-	if (trellis.justPressed(i)) {
-	  Serial.println(i);
-	  trellis.setLED(i);
-	} 
-	// if it was released, turn it off
-	if (trellis.justReleased(i)) {
-	  trellis.clrLED(i);
-	}
+      	// if it was pressed, turn it on
+      	if (trellis.justPressed(i)) {
+      	  trellis.setLED(i);
+          ledMatrix[i] = 1;
+      	} 
+      	// if it was released, turn it off
+      	if (trellis.justReleased(i)) {
+      	  trellis.clrLED(i);
+          ledMatrix[i] = 0;
+      	}
       }
       // tell the trellis to set the LEDs we requested
       trellis.writeDisplay();
+      sendMatrix();
     }
   }
 
@@ -95,13 +109,18 @@ void loop() {
       // go through every button
       for (uint8_t i=0; i<numKeys; i++) {
         // if it was pressed...
-	if (trellis.justPressed(i)) {
-	  Serial.print("v"); Serial.println(i);
-	  // Alternate the LED
-	  if (trellis.isLED(i))
-	    trellis.clrLED(i);
-	  else
-	    trellis.setLED(i);
+      	if (trellis.justPressed(i)) {
+    	    // Alternate the LED
+      	  if (trellis.isLED(i))
+          {
+            trellis.clrLED(i);
+            ledMatrix[i] = 0;
+          }
+      	  else
+          {
+            trellis.setLED(i);
+            ledMatrix[i] = 1; 
+          }
         } 
       }
       // tell the trellis to set the LEDs we requested
